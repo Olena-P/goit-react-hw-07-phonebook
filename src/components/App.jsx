@@ -1,46 +1,28 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addContactAsync,
-  deleteContact,
-  updateFilter,
-} from "../redux/contactsSlice";
+import { fetchContacts } from "../redux/operations";
+import { selectError, selectIsLoading } from "../redux/selectors";
 import ContactForm from "./ContactForm";
 import ContactList from "./ContactList";
 import Filter from "./Filter";
 
 const App = () => {
   const dispatch = useDispatch();
-  const contacts = useSelector((state) => state.contacts.contacts);
-  const filter = useSelector((state) => state.contacts.filter);
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
 
-  const handleAddContact = (newContact) => {
-    dispatch(addContactAsync(newContact));
-  };
-
-  const handleDeleteContact = (contactId) => {
-    dispatch(deleteContact(contactId));
-  };
-
-  const handleFilterChange = (newFilter) => {
-    dispatch(updateFilter(newFilter));
-  };
-
-  const filteredContacts = contacts.filter((contact) =>
-    contact.name.toLowerCase().includes(filter.toLowerCase())
-  );
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
   return (
     <div>
       <h1>Phonebook</h1>
-      <ContactForm onAddContact={handleAddContact} />
-
+      {isLoading && !error && <b>Request in progress...</b>}
+      <ContactForm />
       <h2>Contacts</h2>
-      <Filter filter={filter} onChangeFilter={handleFilterChange} />
-      <ContactList
-        contacts={filteredContacts}
-        onDeleteContact={handleDeleteContact}
-      />
+      <Filter />
+      <ContactList />
     </div>
   );
 };

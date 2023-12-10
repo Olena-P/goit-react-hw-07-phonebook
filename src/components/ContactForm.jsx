@@ -1,18 +1,12 @@
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { addContactAsync } from "../redux/contactsSlice";
+import { selectContacts } from "../redux/selectors";
+import { addContact } from "../redux/operations";
 
 const ContactForm = () => {
   const dispatch = useDispatch();
-
-  const handleSubmit = (values, { resetForm, setErrors }) => {
-    dispatch(addContactAsync(values))
-      .unwrap()
-      .then(() => resetForm())
-      .catch((error) => setErrors({ name: error }));
-  };
 
   const validationSchema = Yup.object().shape({
     name: Yup.string()
@@ -27,11 +21,25 @@ const ContactForm = () => {
       .required("Phone number is required"),
   });
 
+  const contacts = useSelector(selectContacts);
+
   return (
     <Formik
       initialValues={{ name: "", number: "" }}
-      onSubmit={handleSubmit}
       validationSchema={validationSchema}
+      onSubmit={(values, actions) => {
+        const isExist = contacts.some(
+          (contact) => contact.name.toLowerCase() === values.name.toLowerCase()
+        );
+        console.log(isExist);
+
+        if (isExist) {
+          actions.resetForm();
+          return alert(`${values.name} is alredy in contacts.`);
+        }
+        dispatch(addContact(values));
+        actions.resetForm();
+      }}
     >
       <Form>
         <Field type="text" name="name" placeholder="Name" />
